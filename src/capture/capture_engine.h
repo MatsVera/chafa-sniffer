@@ -79,15 +79,51 @@ public:
         return 0;
     }
 
+    void mostrarTodas(){
+        if (interfaces == nullptr) return;
+
+        cout << "Interfaces de red disponibles:" << endl;
+        cout << "--------------------------------" << endl;
+
+        int numero = 1;
+        pcap_if_t* iface = interfaces;
+
+        while (iface != nullptr && numero <= 32) {
+            cout << numero << ". " << iface->name << "" << endl;
+            if (iface->description)
+                cout << "   " << iface->description << "" << endl;
+            iface = iface->next;
+            numero++;
+        }
+    }
+
+    string obtenerNombre(int numero) {
+        int n = 1;
+        pcap_if_t* iface = interfaces;
+        while (iface != nullptr) {
+            if (n == numero) return string(iface->name);
+            iface = iface->next;
+            n++;
+        }
+        return ""; 
+    }
+
 private:
+
+    void mostrarPkt(){
+        cout << "Paquete numero " << contador << endl;
+        store->obtener_todos
+    }
 
     // funcion handler de hilo
     void loop_captura(){
-        pcap_loop(handle, -1, packetHandler, this);
+        pcap_loop(handle, -1, packetHandler, reinterpret_cast<u_char*>(this));
+        
+        mostrarPkt();
     }
 
     static void packetHandler(u_char* user_data, const struct pcap_pkthdr* header, const u_char* packet) {
-        CaptureEngine* engine = reinterpret_cast<CaptureEngine*>(user_data);
+        CaptureEngine* cap = reinterpret_cast<CaptureEngine*>(user_data);
        
 
         PacketInfo info_pkt;
@@ -98,7 +134,7 @@ private:
         info_pkt.tiempo = to_string(seg) + "." + std::to_string(ms);
         info_pkt.raw_bytes = vector<uint8_t>(packet, packet + header->caplen);
         info_pkt.numero = ++(engine->contador); // lleva la cuenta de paquetes capturados
-        engine->store->agregar(info_pkt); 
+        cap->store->agregar(info_pkt); 
     }
 
     // Atributos

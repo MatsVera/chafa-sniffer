@@ -3,40 +3,38 @@
 #include <vector>
 #include <mutex>
 
-// ─────────────────────────────────────────────────────────────────
-// PacketStore: lista compartida de paquetes capturados
-// El hilo de captura escribe aquí.
-// El hilo de la GUI lee desde aquí.
-// El mutex protege el acceso simultáneo de ambos hilos.
-// ─────────────────────────────────────────────────────────────────
+// lista de paquetes capturados
+// captura lo edita y GUI lo le
+
 class PacketStore {
 public:
 
-    // Agregar un paquete (lo llama el hilo de captura)
+    // Agregar un paquete 
     void agregar(const PacketInfo& pkt) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        paquetes_.push_back(pkt);
+        lock_guard<mutex> lock(mtx); //bloquear el mutex y se desbloquea cuando se destruye
+        paquetes.push_back(pkt);
     }
 
-    // Obtener todos los paquetes (lo llama la GUI para dibujar)
-    std::vector<PacketInfo> obtener_todos() {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return paquetes_;
+    // Obtener todos los paquetes
+    //la gui lo llama para poder imprimir**
+    vector<PacketInfo> obtener_todos() {
+        lock_guard<mutex> lock(mtx);
+        return paquetes;
     }
 
-    // Limpiar la lista (botón "limpiar" en la GUI)
+    // Limpiar la lista, limpiar en gui
     void limpiar() {
-        std::lock_guard<std::mutex> lock(mutex_);
-        paquetes_.clear();
+        lock_guard<mutex> lock(mtx);
+        paquetes.clear();
     }
 
     // Cuántos paquetes hay capturados
     size_t cantidad() {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return paquetes_.size();
+        lock_guard<mutex> lock(mtx);
+        return paquetes.size();
     }
 
 private:
-    std::vector<PacketInfo> paquetes_;
-    std::mutex              mutex_;   // protege acceso desde múltiples hilos
+    vector<PacketInfo> paquetes;
+    mutex mtx;   // protege acceso desde múltiples hilos
 };
