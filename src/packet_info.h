@@ -5,8 +5,7 @@
 
 using namespace std;
 
-// representa a un paquete
-// Este struct es el contrato entre todos los módulos del proyecto:
+// representa a un paquete y se usa en
 // capture/   llenar con ncap
 // parser/    extrae los campos de los bytes crudos
 // filters/   evaluar para saber si pasa el filtro
@@ -18,23 +17,23 @@ struct PacketInfo {
     int longitud;              // longitud real del paquete en bytes
 
     // Ethernet
-    string mac_src;       // MAC origen  
+    string mac_org;       // MAC origen  
     string mac_dst;       // MAC destino 
     uint16_t ethertype = 0; // 0x0800=IPv4, 0x0806=ARP, 0x86DD=IPv6
 
     // IP
-    string ip_src;        // IP origen 
+    string ip_org;        // IP origen 
     string ip_dst;        // IP destino 
-    uint8_t     ttl = 0;       // tiempo vida
-    uint8_t     protocolo_num = 0; // 6=TCP, 17=UDP, 1=ICMP
+    uint8_t ttl = 0;       // tiempo vida
+    uint8_t protocolo_num = 0; // 6=TCP, 17=UDP, 1=ICMP
 
-    // Protocolo
+    // Protocolo nombre
     string protocolo;     
 
     // tcp y udp puertos
-    uint16_t    puerto_src = 0;
-    uint16_t    puerto_dst = 0;
+    uint16_t puerto_org = 0;
+    uint16_t puerto_dst = 0;
 
     // Contenido crudo sin manejar
-    vector<uint8_t> raw_bytes;
+    vector<uint8_t> bytes;
 };

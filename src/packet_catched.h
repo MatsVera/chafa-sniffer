@@ -6,7 +6,7 @@
 // lista de paquetes capturados
 // captura lo edita y GUI lo le
 
-class PacketStore {
+class PacketCatched {
 public:
 
     // Agregar un paquete 
@@ -36,5 +36,5 @@ public:
 
 private:
     vector<PacketInfo> paquetes;
-    mutex mtx;   // protege acceso desde múltiples hilos
+    mutex mtx;   // protege acceso desde varios hilos
 };

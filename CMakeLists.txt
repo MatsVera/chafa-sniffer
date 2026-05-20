@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(NPCAP_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/libs/npcap/Include")
 set(NPCAP_LIB_DIR     "${CMAKE_SOURCE_DIR}/libs/npcap/Lib/x64")
 
-# Archivos fuente (por ahora solo main)
+# Archivos fuente 
 add_executable(chafa-sniffer
     src/main.cpp
 )
@@ -23,4 +23,5 @@ target_include_directories(chafa-sniffer PRIVATE
 target_link_libraries(chafa-sniffer PRIVATE
     ${NPCAP_LIB_DIR}/wpcap.lib
     ${NPCAP_LIB_DIR}/Packet.lib
+    ws2_32
 )

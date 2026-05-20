@@ -4,17 +4,19 @@
 #include <atomic>
 #include <vector>
 #include <pcap.h>
+#include <iostream>
 #include "../packet_info.h"
-#include "../packet_store.h"
+#include "../packet_catched.h"
+#include "../parser/parser.h"
 
-class CaptureEngine {
+class Capture {
 public:
     //motor de captura
-    CaptureEngine(PacketStore* pkt_store): store(pkt_store),handle(nullptr),corriendo(false),contador(0),interfaces(nullptr){
+    Capture(PacketCatched* pkt_ctch): ctch(pkt_ctch),handle(nullptr),corriendo(false),contador(0),interfaces(nullptr){
         cargarInterfaces();
     }
 
-    ~CaptureEngine(){
+    ~Capture(){
         if (esta_capturando()) detener();
         pcap_freealldevs(interfaces);
     }
@@ -43,7 +45,7 @@ public:
         handle = pcap_open_live(nombre_interfaz.c_str(), 65535, 1, 1000, errbuf); //pporue ncap esta en c
 
         if (handle == nullptr) {
-            cerr << "Error abriendo interfaz: " << errbuf << "" << endl;
+            cout << "Error abriendo interfaz: " << errbuf << "" << endl;
             pcap_freealldevs(interfaces);
             return false;
         }
@@ -51,14 +53,14 @@ public:
         corriendo = true;
 
         //crear el hilo
-        hilo = thread(&CaptureEngine::loop_captura, this);
+        hilo = thread(&Capture::loop_captura, this);
 
         return true;
 
     }
 
     // Detiene la captura
-    // primero parar el loop, luego esperas al hilo, luego cierras
+    // primero parar el loop, luego espera al hilo, luego ya se puede cerrar
     void detener(){
         pcap_breakloop(handle);
         hilo.join();
@@ -66,14 +68,14 @@ public:
         corriendo = false;
     }
 
-    bool esta_capturando() const{
+    bool esta_capturando() {
         return corriendo;
     }
 
     int cargarInterfaces(){
         // interfaces
         if (pcap_findalldevs(&interfaces, errbuf) == -1) {
-            cerr << "Error al buscar las interfaces" << errbuf << "" << endl;
+            cout << "Error al buscar las interfaces" << errbuf << "" << endl;
             return 1;
         }
         return 0;
@@ -109,36 +111,9 @@ public:
     }
 
 private:
-
-    void mostrarPkt(){
-        cout << "Paquete numero " << contador << endl;
-        store->obtener_todos
-    }
-
-    // funcion handler de hilo
-    void loop_captura(){
-        pcap_loop(handle, -1, packetHandler, reinterpret_cast<u_char*>(this));
-        
-        mostrarPkt();
-    }
-
-    static void packetHandler(u_char* user_data, const struct pcap_pkthdr* header, const u_char* packet) {
-        CaptureEngine* cap = reinterpret_cast<CaptureEngine*>(user_data);
-       
-
-        PacketInfo info_pkt;
-        info_pkt.longitud = header->len;
-        long seg = header->ts.tv_sec;
-        long ms = header->ts.tv_usec;
-
-        info_pkt.tiempo = to_string(seg) + "." + std::to_string(ms);
-        info_pkt.raw_bytes = vector<uint8_t>(packet, packet + header->caplen);
-        info_pkt.numero = ++(engine->contador); // lleva la cuenta de paquetes capturados
-        cap->store->agregar(info_pkt); 
-    }
-
-    // Atributos
-    PacketStore* store;              // donde guardamos los paquetes, lista
+    //atributos
+    Parser parser;
+    PacketCatched* ctch;              // donde guardamos los paquetes, lista
     pcap_t* handle;                 // el handle de npcap
     thread hilo;                    // el hilo de captura
     atomic<bool> corriendo;         // controla si el loop sigue activo
@@ -146,4 +121,32 @@ private:
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_if_t* interfaces;
 
+
+    //static void parsear(const u_char* crudo, int longitud, PacketInfo& info
+    void parsear(const u_char* crudo, int longitud, PacketInfo& info){
+        parser.parsear(crudo, longitud, info);
+    }
+
+    // funcion handler de hilo
+    void loop_captura(){
+        pcap_loop(handle, -1, packetHandler, reinterpret_cast<u_char*>(this));
+    }
+
+    static void packetHandler(u_char* data, const struct pcap_pkthdr* header, const u_char* packet) {
+        Capture* cap = reinterpret_cast<Capture*>(data);
+
+        PacketInfo info_pkt;
+        info_pkt.longitud = header->len;
+        long seg = header->ts.tv_sec;
+        long ms = header->ts.tv_usec;
+
+        info_pkt.tiempo = to_string(seg) + "." + to_string(ms);
+        info_pkt.bytes = vector<uint8_t>(packet, packet + header->caplen);
+        info_pkt.numero = ++(cap->contador); // lleva la cuenta de paquetes capturados
+
+        //.data()
+        cap->parsear(info_pkt.bytes.data(), info_pkt.longitud, info_pkt);
+
+        cap->ctch->agregar(info_pkt); 
+    }
 };
