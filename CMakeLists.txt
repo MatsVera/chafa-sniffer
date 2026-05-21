@@ -1,27 +1,40 @@
 cmake_minimum_required(VERSION 3.20)
 project(ChafaSniffer VERSION 1.0 LANGUAGES CXX)
 
-# Usar C++17
+# Qt
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
+# C++
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Rutas del npcap SDK
+# Rutas de Npcap
 set(NPCAP_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/libs/npcap/Include")
 set(NPCAP_LIB_DIR     "${CMAKE_SOURCE_DIR}/libs/npcap/Lib/x64")
 
+# Ejecutable
 # Archivos fuente 
 add_executable(chafa-sniffer
     src/main.cpp
+    src/gui/mainwindow.cpp
+    src/gui/mainwindow.h
+    src/gui/mainwindow.ui
 )
 
-# Incluir headers de npcap
+# Includes
 target_include_directories(chafa-sniffer PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
     ${NPCAP_INCLUDE_DIR}
 )
 
-# Enlazar con las librerías de npcap
+# Librerías
 target_link_libraries(chafa-sniffer PRIVATE
-    ${NPCAP_LIB_DIR}/wpcap.lib
-    ${NPCAP_LIB_DIR}/Packet.lib
+    Qt6::Widgets
+    "${NPCAP_LIB_DIR}/wpcap.lib"
+    "${NPCAP_LIB_DIR}/Packet.lib"
     ws2_32
 )
