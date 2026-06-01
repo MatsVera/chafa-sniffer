@@ -8,11 +8,13 @@
 #include "../packet_info.h"
 #include "../packet_catched.h"
 #include "../parser/parser.h"
+using namespace std;
 
 class Capture {
 public:
+
     //motor de captura
-    Capture(PacketCatched* pkt_ctch): ctch(pkt_ctch),handle(nullptr),corriendo(false),contador(0),interfaces(nullptr){
+    Capture(PacketCatched* pkt_ctch): ctch(pkt_ctch),handle(nullptr),corriendo(false),pausado(false),contador(0),interfaces(nullptr){
         cargarInterfaces();
     }
 
@@ -25,19 +27,21 @@ public:
     bool iniciar(const string& nombre_interfaz){
         int numero = 1;
         pcap_if_t* iface = interfaces;
-
+        interfaz_actual = nombre_interfaz;
         // punteros para poder usar
         pcap_if_t* lista[32] = {};
 
-        while (iface != nullptr && numero <= 32) {
-            lista[numero] = iface;
-            if(string(iface->name) == nombre_interfaz) break;
+        while (iface != nullptr && numero <= 32)
+        {
+            if(string(iface->name) == nombre_interfaz)
+                break;
+
             iface = iface->next;
             numero++;
         }
 
-        if (numero == 32){
-            pcap_freealldevs(interfaces);
+        if (iface == nullptr)
+        {
             return false;
         }
 
@@ -45,8 +49,7 @@ public:
         handle = pcap_open_live(nombre_interfaz.c_str(), 65535, 1, 1000, errbuf); //pporue ncap esta en c
 
         if (handle == nullptr) {
-            cout << "Error abriendo interfaz: " << errbuf << "" << endl;
-            pcap_freealldevs(interfaces);
+            //cout << "Error abriendo interfaz: " << errbuf << "" << endl;
             return false;
         }
 
@@ -58,6 +61,10 @@ public:
         return true;
 
     }
+    PacketCatched* obtenerPaquetes()
+    {
+        return ctch;
+    }
 
     // Detiene la captura
     // primero parar el loop, luego espera al hilo, luego ya se puede cerrar
@@ -67,6 +74,30 @@ public:
         pcap_close(handle);
         corriendo = false;
     }
+    void pausar(){
+        pausado=true;
+    }
+    void reanudar(){
+        pausado=false;
+    }
+    void reiniciar()
+    {
+        if(corriendo)
+        {
+            pcap_breakloop(handle);
+
+            if(hilo.joinable())
+                hilo.join();
+
+            pcap_close(handle);
+            corriendo = false;
+        }
+
+        contador = 0;
+        pausado =false;
+        ctch->limpiar();
+        iniciar(interfaz_actual);
+    }
 
     bool esta_capturando() {
         return corriendo;
@@ -75,7 +106,7 @@ public:
     int cargarInterfaces(){
         // interfaces
         if (pcap_findalldevs(&interfaces, errbuf) == -1) {
-            cout << "Error al buscar las interfaces" << errbuf << "" << endl;
+            //cout << "Error al buscar las interfaces" << errbuf << "" << endl;
             return 1;
         }
         return 0;
@@ -99,15 +130,36 @@ public:
         }
     }
 
-    string obtenerNombre(int numero) {
-        int n = 1;
+    string obtenerNombre(const string& descripcion)
+    {
         pcap_if_t* iface = interfaces;
-        while (iface != nullptr) {
-            if (n == numero) return string(iface->name);
+
+        while(iface != nullptr)
+        {
+            if(iface->description &&
+                string(iface->description) == descripcion)
+            {
+                return string(iface->name);
+            }
+
             iface = iface->next;
-            n++;
         }
-        return ""; 
+
+        return descripcion;
+    }
+    vector<string> obtenerInterfaces(){
+        vector<string> lista;
+        pcap_if_t * iface = interfaces;
+        while(iface!= nullptr){
+            if(iface->description){
+                lista.push_back(iface->description);
+            }
+            else{
+                lista.push_back(iface->name);
+            }
+            iface = iface->next;
+        }
+        return lista;
     }
 
 private:
@@ -117,9 +169,11 @@ private:
     pcap_t* handle;                 // el handle de npcap
     thread hilo;                    // el hilo de captura
     atomic<bool> corriendo;         // controla si el loop sigue activo
+    atomic<bool> pausado;
     int contador;                   // num de paquete actual
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_if_t* interfaces;
+    string interfaz_actual;
 
 
     //static void parsear(const u_char* crudo, int longitud, PacketInfo& info
@@ -134,7 +188,8 @@ private:
 
     static void packetHandler(u_char* data, const struct pcap_pkthdr* header, const u_char* packet) {
         Capture* cap = reinterpret_cast<Capture*>(data);
-
+        if(cap->pausado)
+            return;
         PacketInfo info_pkt;
         info_pkt.longitud = header->len;
         long seg = header->ts.tv_sec;

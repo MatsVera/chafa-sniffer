@@ -23,6 +23,7 @@ add_executable(chafa-sniffer
     src/gui/mainwindow.cpp
     src/gui/mainwindow.h
     src/gui/mainwindow.ui
+    src/gui/capturawindow.h src/gui/capturawindow.cpp src/gui/capturawindow.ui
 )
 
 # Includes

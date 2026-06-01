@@ -6,25 +6,164 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>1077</width>
     <height>600</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <bold>true</bold>
+   </font>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="capturar">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>30</y>
+      <width>301</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>28</pointsize>
+      <italic>true</italic>
+      <underline>false</underline>
+      <strikeout>false</strikeout>
+      <fontweight>ExtraBold</fontweight>
+     </font>
+    </property>
+    <property name="text">
+     <string>Capturar</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="interfaces">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>140</y>
+      <width>751</width>
+      <height>351</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnIniciar">
+    <property name="geometry">
+     <rect>
+      <x>800</x>
+      <y>510</y>
+      <width>90</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Iniciar</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_4">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>60</y>
+      <width>90</width>
+      <height>29</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>PushButton</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1077</width>
      <height>25</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuArchivo">
+    <property name="title">
+     <string>Archivo</string>
+    </property>
+    <addaction name="actionExportar_CSV"/>
+    <addaction name="actionGuardar_Captura"/>
+    <addaction name="actionSalir"/>
+   </widget>
+   <widget class="QMenu" name="menuCaptura">
+    <property name="title">
+     <string>Captura</string>
+    </property>
+    <addaction name="actionIniciar_Captura"/>
+    <addaction name="actionDetener"/>
+   </widget>
+   <widget class="QMenu" name="menuFiltros">
+    <property name="title">
+     <string>Filtros</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuHerramientas">
+    <property name="title">
+     <string>Herramientas</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuAyuda">
+    <property name="title">
+     <string>Ayuda</string>
+    </property>
+   </widget>
+   <addaction name="menuArchivo"/>
+   <addaction name="menuCaptura"/>
+   <addaction name="menuFiltros"/>
+   <addaction name="menuHerramientas"/>
+   <addaction name="menuAyuda"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionExportar_CSV">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::ListAdd"/>
+   </property>
+   <property name="text">
+    <string>Exportar CSV</string>
+   </property>
+  </action>
+  <action name="actionGuardar_Captura">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+   </property>
+   <property name="text">
+    <string>Guardar Captura</string>
+   </property>
+  </action>
+  <action name="actionSalir">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::SystemShutdown"/>
+   </property>
+   <property name="text">
+    <string>Salir</string>
+   </property>
+  </action>
+  <action name="actionIniciar_Captura">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::MediaPlaybackStart"/>
+   </property>
+   <property name="text">
+    <string>Iniciar</string>
+   </property>
+  </action>
+  <action name="actionDetener">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::MediaPlaybackStop"/>
+   </property>
+   <property name="text">
+    <string>Detener</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
